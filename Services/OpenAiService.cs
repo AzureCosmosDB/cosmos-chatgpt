@@ -1,6 +1,7 @@
 ﻿using CosmosDB_ChatGPT.Models;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace CosmosDB_ChatGPT.Services
 {
@@ -43,11 +44,32 @@ namespace CosmosDB_ChatGPT.Services
 
             response.EnsureSuccessStatusCode();
 
-            string jsonResponse = await response.Content.ReadAsStringAsync();
+            string jsonString = await response.Content.ReadAsStringAsync();
 
-            return jsonResponse;
+            OpenAiResponse openAiResponse = JsonSerializer.Deserialize<OpenAiResponse>(jsonString);
+
+            string chatResponse = openAiResponse.ojbect;
+
+            return chatResponse;
 
         }
         
+    }
+
+    public class OpenAiResponse
+    {
+        public string? id;
+        public string? ojbect;
+        public int created;
+        public string? model;
+        public List<OpenAiResponseChoices>? choices;
+    }
+
+    public class OpenAiResponseChoices
+    {
+        string? text;
+        string? index;
+        string? logprobs;
+        string? finish_reason;
     }
 }
