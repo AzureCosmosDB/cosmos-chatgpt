@@ -1,4 +1,5 @@
 ﻿using CosmosDB_ChatGPT.Models;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -27,12 +28,14 @@ namespace CosmosDB_ChatGPT.Services
         }
 
 
-        public async Task<string> PostAsync(string Prompt, string ChatSession)
+        public async Task<string> PostAsync(string Prompt)
         {
             using StringContent jsonContent = new(
                 JsonSerializer.Serialize(new
                 {
-                    prompt = Prompt
+                    model = "text-davinci-003",
+                    prompt = Prompt,
+                    temperature = 0     //sampling temperature
                 }),
                 Encoding.UTF8,
                 "application/json");
@@ -46,11 +49,12 @@ namespace CosmosDB_ChatGPT.Services
 
             string jsonString = await response.Content.ReadAsStringAsync();
 
-            OpenAiResponse openAiResponse = JsonSerializer.Deserialize<OpenAiResponse>(jsonString);
+            return jsonString;  //temporary until have api-key
 
-            string chatResponse = openAiResponse.ojbect;
-
-            return chatResponse;
+            //Max response size is 16 KB
+            //OpenAiResponse? openAiResponse = JsonSerializer.Deserialize<OpenAiResponse>(jsonString);
+            //string? chatResponse = openAiResponse.ojbect;
+            //return chatResponse;
 
         }
         

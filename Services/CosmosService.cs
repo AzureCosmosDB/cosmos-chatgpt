@@ -4,6 +4,9 @@ using Microsoft.Extensions.Configuration;
 using System.Configuration;
 using System.Collections;
 using System.Collections.ObjectModel;
+using Newtonsoft.Json;
+using System.Linq.Expressions;
+using System;
 
 namespace CosmosDB_ChatGPT.Services
 {
@@ -12,7 +15,6 @@ namespace CosmosDB_ChatGPT.Services
         
         private readonly CosmosClient cosmosClient;
         private readonly Container chatContainer;
-    
 
         public CosmosService(IConfiguration configuration)
         {
@@ -24,111 +26,145 @@ namespace CosmosDB_ChatGPT.Services
 
             cosmosClient = new CosmosClient(key, uri);
 
-            chatContainer = cosmosClient.GetDatabase(database).GetContainer(container);
-            //chatContainer = CreateContainerIfNotExistsAsync(database, container).Wait();
+            chatContainer = CreateContainerIfNotExistsAsync(database, container).Result;
         }
 
-
-        public async Task<Chat> InsertChatAsync(Chat chat)
-        {
-            return await chatContainer.CreateItemAsync(chat, new PartitionKey(chat.UserName));
-        }
         
-        public async Task<Chat> ReadChatAsync(string UserName, string id)
+        // First call is made to this when chat page is loaded for left-hand nav.
+        // Only retrieve the chat sessions, not chat messages
+        public async Task<List<ChatSession>> GetChatSessionsListAsync()
         {
-            return await chatContainer.ReadItemAsync<Chat>(partitionKey: new PartitionKey(UserName), id: id);
-        }
+            List<ChatSession> chatSessions = new();
 
-        public async Task<Chat> ReplaceChatAsync(Chat chat)
-        {
-            return await chatContainer.ReplaceItemAsync<Chat>(partitionKey: new PartitionKey(chat.UserName) , id: chat.Id, item: chat);
-        }
+            try { 
+                //Get documents that are the chat sessions without the chat message documents.
+                QueryDefinition query = new QueryDefinition("SELECT DISTINCT c.id, c.Type, c.ChatSessionId, c.ChatSessionName FROM c WHERE c.Type = @Type")
+                    .WithParameter("@Type", "ChatSession");
 
-        public async Task DeleteChatAsync(string UserName, string id)
-        {
-            await chatContainer.DeleteItemAsync<Chat>(partitionKey: new PartitionKey(UserName), id: id);
-        }
+                FeedIterator<ChatSession> results = chatContainer.GetItemQueryIterator<ChatSession>(query);
 
-        public async Task<List<Chat>> GetChatsForSession(string UserName)
-        {
-            QueryDefinition query = new QueryDefinition(
-                "SELECT * FROM c WHERE c.UserName = @UserName")
-                .WithParameter("@UserName", UserName);
-
-            FeedIterator<Chat> results = chatContainer.GetItemQueryIterator<Chat>(
-                query,
-                requestOptions: new QueryRequestOptions()
+                while (results.HasMoreResults)
                 {
-                    PartitionKey = new PartitionKey(UserName)
-                });
-
-            List<Chat> sessionChats = new List<Chat>();
-            while (results.HasMoreResults)
+                    FeedResponse<ChatSession> response = await results.ReadNextAsync();
+                    foreach (ChatSession chatSession in response)
+                    {
+                        chatSessions.Add(chatSession);
+                    }
+                
+                }
+            }
+            catch(CosmosException ce)
             {
-                FeedResponse<Chat> response = await results.ReadNextAsync();
-                sessionChats.Add(response.First());
+                //if 404, first run, create a new default chat session document.
+                if (ce.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    ChatSession chatSession = new ChatSession();
+                    await InsertChatSessionAsync(chatSession);
+                    chatSessions.Add(chatSession);
+                }
+
             }
 
-            return sessionChats;
+            return chatSessions;
+
         }
 
-        public async Task<List<Chat>> GetAllChats()
+        public async Task<ChatSession> InsertChatSessionAsync(ChatSession chatSession)
         {
-            QueryDefinition query = new QueryDefinition("SELECT * FROM c");
 
-            FeedIterator<Chat> results = chatContainer.GetItemQueryIterator<Chat>(query);
+            return await chatContainer.CreateItemAsync<ChatSession>(chatSession, new PartitionKey(chatSession.ChatSessionId));
 
-            List<Chat> sessionChats = new List<Chat>();
+        }
+
+        public async Task<ChatSession> UpdateChatSessionAsync(ChatSession chatSession)
+        {
+
+            return await chatContainer.ReplaceItemAsync(item: chatSession, id: chatSession.Id, partitionKey: new PartitionKey(chatSession.ChatSessionId));
+
+        }
+
+        public async Task DeleteChatSessionAsync(string chatSessionId)
+        {
+            //Retrieve the chat session and all the chat message items for a chat session
+            QueryDefinition query = new QueryDefinition("SELECT c.id, c.ChatSessionId FROM c WHERE c.id = @Type")
+                    .WithParameter("@Type", "ChatSession");
+
+            FeedIterator<dynamic> results = chatContainer.GetItemQueryIterator<dynamic>(query);
+
             while (results.HasMoreResults)
             {
-                FeedResponse<Chat> response = await results.ReadNextAsync();
-                sessionChats.Add(response.First());
+                FeedResponse<dynamic> response = await results.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    await chatContainer.DeleteItemAsync(id: item.id, partitionKey: new PartitionKey(item.ChatSessionId));
+                }
+
             }
 
-            return sessionChats;
         }
+
+        public async Task<ChatMessage> InsertChatMessageAsync(ChatMessage chatMessage)
+        {
+
+            return await chatContainer.CreateItemAsync<ChatMessage>(chatMessage, new PartitionKey(chatMessage.ChatSessionId));
+            
+        }
+
+        public async Task<List<ChatMessage>> GetChatSessionMessagesAsync(string chatSessionId)
+        {
+
+            //Get the chat messages for a chat session
+            QueryDefinition query = new QueryDefinition("SELECT * FROM c WHERE c.ChatSessionId = @ChatSessionId AND c.Type = @Type")
+                .WithParameter("@ChatSessionId", chatSessionId)
+                .WithParameter("@ChatSession", "ChatSession");
+
+            FeedIterator<ChatMessage> results = chatContainer.GetItemQueryIterator<ChatMessage>(query);
+
+            List<ChatMessage> chatMessages= new List<ChatMessage>();
+            
+            while (results.HasMoreResults)
+            {
+                FeedResponse<ChatMessage> response = await results.ReadNextAsync();
+                foreach (ChatMessage chatMessage in response)
+                {
+                    chatMessages.Add(chatMessage);
+                }
+            }
+
+            return chatMessages;
+
+        }
+
 
         public async Task<Container> CreateContainerIfNotExistsAsync(string databaseId, string containerId)
         {
 
             Database database = await cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId);
 
-            //ContainerProperties properties = new ContainerProperties();
-            //properties.PartitionKeyDefinitionVersion = PartitionKeyDefinitionVersion.V2;
-            //properties.PartitionKeyPath = "/userName";
-            //properties.IndexingPolicy.Automatic = true;
-            //properties.IndexingPolicy.IndexingMode = IndexingMode.Consistent;
-            //properties.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });
-            //properties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "Response/?" });
+            ContainerProperties properties = new ContainerProperties();
 
-            //ThroughputProperties t = new ThroughputProperties();
+            properties.PartitionKeyDefinitionVersion = PartitionKeyDefinitionVersion.V2;
+            properties.PartitionKeyPath = "/ChatSessionId";
 
+            properties.IndexingPolicy.Automatic = true;
+            properties.IndexingPolicy.IndexingMode = IndexingMode.Consistent;
+            properties.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });
+            properties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/Response/?" });
+            properties.IndexingPolicy.CompositeIndexes.Add(
+                new Collection<CompositePath> { 
+                    new CompositePath() { 
+                        Path = "/ChatName", Order = CompositePathSortOrder.Ascending,}, 
+                    new CompositePath() { 
+                        Path = "/DateTime", Order = CompositePathSortOrder.Ascending 
+                    } 
+                });
 
-            //Container container = database.CreateContainerIfNotExistsAsync(properties, new ThroughputProperties(400))
+            ThroughputProperties throughput = ThroughputProperties.CreateAutoscaleThroughput(1000);
 
-            //ContainerProperties properties = new ContainerProperties()
-            //{
-            //    Id = containerId,
-            //    PartitionKeyPath = "/userName",
-            //    PartitionKeyDefinitionVersion = PartitionKeyDefinitionVersion.V2,
-            //    IndexingPolicy = new IndexingPolicy()
-            //    {
-            //        Automatic = true,
-            //        IndexingMode = IndexingMode.Consistent,
-            //        IncludedPaths = new Collection<IncludedPath>
-            //        {
-            //            new IncludedPath { Path = "/*" }
-            //        },
-            //        ExcludedPaths = new Collection<ExcludedPath>
-            //        {
-            //            new ExcludedPath { Path = "/Response/?"}
-            //        }
-            //    }
-            //};
-
-            return await database.CreateContainerIfNotExistsAsync(containerId, "/UserName", 400);
+            return await database.CreateContainerIfNotExistsAsync(properties, throughput);
 
             
         }
     }
+
 }

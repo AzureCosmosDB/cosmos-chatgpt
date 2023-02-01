@@ -2,13 +2,14 @@
 using System;
 using System.Configuration;
 using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CosmosDB_ChatGPT.Services
 {
     public class ChatService
     {
 
-        private List<Chat> chatList;
+        public List<ChatSession> chatSessions; //Bind to lef-hand nav
 
         private readonly CosmosService cosmos;
         private readonly OpenAiService openAi;
@@ -16,58 +17,120 @@ namespace CosmosDB_ChatGPT.Services
         public ChatService(IConfiguration configuration) 
         { 
 
-            chatList= new List<Chat>();
-
             cosmos = new CosmosService(configuration);
             openAi = new OpenAiService(configuration);
 
+            //Load chat sessions for left-hand nav
+            chatSessions = GetAllChatSessionsAsync().Result;
+
         }
 
-        public async Task<List<Chat>> GetChats()
+        /**
+        Data here maintained in chatSessions List object.
+        Any call made here is reflected in this object and is saved to Cosmos.
+        
+        Calls Here
+        1. Get list of Chat Sessions for left-hand nav (called when instance created).
+        2. User clicks on Chat Session, go get messages for that chat session.
+        3. User clicks + to create a new Chat Session.
+        4. User renames a chat session from "New Chat" to something else.
+        5. User deletes a chat session.
+        6. User types a question (prompt) into web page and hits enter.
+            6.1 Save prompt in chatSessions.Messages[] 
+            6.2 Save response in chatSessions.Messages[]
+        **/
+
+
+        // Returns list of chat session ids and names for left-hand nav to bind to (display ChatSessionName and ChatSessionId as hidden)
+        public async Task<List<ChatSession>> GetAllChatSessionsAsync()
         {
-            chatList = await cosmos.GetAllChats();
-            return chatList;
+            return await cosmos.GetChatSessionsListAsync();
         }
 
-        public async Task<Chat> GetChat(string UserName, string Id)
+        //Returns the chat messages to display on the main web page when the user selects a chat from the left-hand nav
+        public async Task<List<ChatMessage>> GetChatSessionMessages(string chatSessionId)
         {
-            var index = chatList.FindIndex(p => p.UserName == UserName && p.Id == Id);
-            if (chatList[index].Response is null)
-                chatList[index] = await cosmos.ReadChatAsync(UserName, Id);
 
-            return chatList[index];
+            List<ChatMessage> chatMessages = await cosmos.GetChatSessionMessagesAsync(chatSessionId);
+
+            int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);
+
+            chatSessions[index].Messages = chatMessages;
+
+            return chatMessages;
+
         }
 
-        public async Task<Chat> AddNewChat(Chat chat)
+        //User creates a new Chat Session in left-hand nav
+        public async Task CreateNewChatSession()
         {
-            Chat newChat = await cosmos.InsertChatAsync(chat);
-
-            chatList.Add(newChat);
-
-            return newChat;
+            ChatSession chatSession = new ChatSession();
+            chatSessions.Add(chatSession);
+            await cosmos.InsertChatSessionAsync(chatSession);
         }
 
-        public async Task Delete(string UserName, string Id)
+        //User renames a chat from "New Chat" to user defined
+        public async Task RenameChatSessionAsync(string chatSessionId, string newChatSessionName)
         {
-            var chat = await GetChat(UserName, Id);
-            if (chat is null)
-                return;
+            
+            int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);
 
-            await cosmos.DeleteChatAsync(UserName, Id);
+            chatSessions[index].ChatSessionName = newChatSessionName;
 
-            chatList.Remove(chat);
+            await cosmos.UpdateChatSessionAsync(chatSessions[index]);
+
         }
-        public async Task<Chat> Update(Chat chat)
+
+        //User deletes a chat session from left-hand nav
+        public async Task DeleteChatSessionAsync(string chatSessionId)
         {
-            var index = chatList.FindIndex(p => p.UserName == chat.UserName && p.Id == chat.Id);
+            int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);
 
-            //if (index == -1)
+            chatSessions.RemoveAt(index);
 
-            Chat updatedChat = await cosmos.ReplaceChatAsync(chat);
+            await cosmos.DeleteChatSessionAsync(chatSessionId);
 
-            chatList[index] = updatedChat;
 
-            return updatedChat;
         }
+
+        //User prompt to ask OpenAI a question
+        public async Task<string> AskOpenAi(string chatSessionId, string prompt)
+        {
+            await AddPromptMessage(chatSessionId, prompt);
+
+            string response = await openAi.PostAsync(prompt);
+
+            await AddResponseMessage(chatSessionId, response);
+
+            return response;
+
+        }
+
+        // Add human prompt to the chat session message list object and insert into Cosmos.
+        private async Task AddPromptMessage(string chatSessionId, string text)
+        {
+            ChatMessage chatMessage = new ChatMessage(chatSessionId, "Human", text);
+
+            int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);
+
+            chatSessions[index].AddMessage(chatMessage);
+
+            await cosmos.InsertChatMessageAsync(chatMessage);
+
+        }
+
+        // Add OpenAI ressponse to the chat session message list object and insert into Cosmos.
+        private async Task AddResponseMessage(string chatSessionId, string text)
+        {
+            ChatMessage chatMessage = new ChatMessage(chatSessionId, "OpenAI", text);
+
+            int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);
+
+            chatSessions[index].AddMessage(chatMessage);
+
+            await cosmos.InsertChatMessageAsync(chatMessage);
+
+        }
+
     }
 }
