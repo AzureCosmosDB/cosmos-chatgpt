@@ -13,6 +13,7 @@ namespace CosmosDB_ChatGPT.Services
 
         public OpenAiService(IConfiguration configuration) 
         {
+            /*
             string uri = configuration["OpenAiUri"];
             string key = configuration["OpenAiKey"];
             string deployment = configuration["OpenAiDeployment"];
@@ -25,6 +26,7 @@ namespace CosmosDB_ChatGPT.Services
 
             httpClient.DefaultRequestHeaders.Add("api-key", key); //auth key
             httpClient.DefaultRequestHeaders.Add("Content-Type", "application-json");
+            */
         }
 
 

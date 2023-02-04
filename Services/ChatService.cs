@@ -1,4 +1,5 @@
 ﻿using CosmosDB_ChatGPT.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Configuration;
 using System.Xml.Linq;
@@ -44,7 +45,16 @@ namespace CosmosDB_ChatGPT.Services
         // Returns list of chat session ids and names for left-hand nav to bind to (display ChatSessionName and ChatSessionId as hidden)
         public async Task<List<ChatSession>> GetAllChatSessionsAsync()
         {
-            return await cosmos.GetChatSessionsListAsync();
+
+			List<ChatSession>  sessions = new List<ChatSession>();
+			for (int i = 0; i < 12; i++)
+            {
+				sessions.Add(new ChatSession(i.ToString(), "Chat Session " + i, System.DateTime.Now,i));
+			}
+            return sessions;
+
+
+			return await cosmos.GetChatSessionsListAsync();
         }
 
         //Returns the chat messages to display on the main web page when the user selects a chat from the left-hand nav

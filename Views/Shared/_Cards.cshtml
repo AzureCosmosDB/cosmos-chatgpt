@@ -1,0 +1,25 @@
+﻿@model IEnumerable<ChatSession>
+<div class="container my-3 " id="featureContainer">
+	<div class="row mx-auto my-auto justify-content-center">
+		<div id="featureCarousel" class="carousel slide" data-interval="0" data-bs-ride="carousel">
+			<div class="carousel-inner" role="listbox">
+
+				@for(int i=0;i<Model.Count();i++)
+				{
+				<partial name="_CardItem" model="Model.ElementAt(i)" />
+				}
+				
+			</div>
+		</div>
+		<div class="carousel card-deck slide justify-content-center mt-1">
+			<a class="indicator" href="#featureCarousel" role="button" data-bs-slide="prev">
+				<span class="fas fa-chevron-left" aria-hidden="true"></span>
+			</a>&nbsp;&nbsp;
+			<a class="w-aut indicator" href="#featureCarousel" role="button" data-bs-slide="next">
+				<span class="fas fa-chevron-right" aria-hidden="true"></span>
+			</a>
+		</div>
+	</div>
+</div>
+
+

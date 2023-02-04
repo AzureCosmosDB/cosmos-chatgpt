@@ -18,7 +18,7 @@ namespace CosmosDB_ChatGPT.Services
 
         public CosmosService(IConfiguration configuration)
         {
-            
+            /*
             string uri = configuration["CosmosUri"];
             string key = configuration["CosmosKey"];
             string database = configuration["CosmosDatabase"];
@@ -27,6 +27,7 @@ namespace CosmosDB_ChatGPT.Services
             cosmosClient = new CosmosClient(key, uri);
 
             chatContainer = CreateContainerIfNotExistsAsync(database, container).Result;
+            */
         }
 
         
@@ -45,10 +46,12 @@ namespace CosmosDB_ChatGPT.Services
 
                 while (results.HasMoreResults)
                 {
+                    int i = 0;
                     FeedResponse<ChatSession> response = await results.ReadNextAsync();
                     foreach (ChatSession chatSession in response)
                     {
-                        chatSessions.Add(chatSession);
+						chatSession.Index= ++i;
+						chatSessions.Add(chatSession);
                     }
                 
                 }

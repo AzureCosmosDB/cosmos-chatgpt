@@ -1,0 +1,41 @@
+﻿@model IEnumerable<ChatSession>
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<!-- Begin Page Content -->
+<div class="container-fluid expanding-div">
+
+
+	<!-- Page Heading -->
+	<div class="d-sm-flex justify-content-between mt-4 mr-4">
+		<div>
+			<h1 class="h3 mb-0 text-gray-800">ChatGPT with Cosmos DB</h1>
+		</div>
+		<div style=" height:20px">
+			<a href="#" class="btn btn-sm btn-primary shadow-sm">
+				<i class="fas fa-sm text-white-50"></i>New Chat
+			</a>
+		</div>
+	</div>
+	<!-- Cards Row -->
+	<partial name="_Cards" />
+
+
+	<!-- Content Row-->
+	<partial name="_PrevPromptMessages" />
+
+	<!--Prompt Row-->
+	<partial name="_PromptArea" />
+
+	<!-- gap-->
+	<div style="height:10px"></div>
+	<!-- Footer Row-->
+	<footer class="footer text-muted">
+		<div class="container">
+			&copy; 2023 - CosmosDB_ChatGPT - <a asp-area="" asp-page="/Privacy">Privacy</a>
+		</div>
+	</footer>
+
+</div>

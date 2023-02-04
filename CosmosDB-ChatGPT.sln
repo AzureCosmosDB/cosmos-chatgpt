@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CosmosDB-ChatGPT", "CosmosDB-ChatGPT.csproj", "{AB2C218B-2B3F-46CA-A50F-EF5648363AE5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CosmosDB-ChatGPT", "CosmosDB-ChatGPT.csproj", "{8772D3CF-4C47-4A9F-9937-50124430A9D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AB2C218B-2B3F-46CA-A50F-EF5648363AE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AB2C218B-2B3F-46CA-A50F-EF5648363AE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AB2C218B-2B3F-46CA-A50F-EF5648363AE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AB2C218B-2B3F-46CA-A50F-EF5648363AE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8772D3CF-4C47-4A9F-9937-50124430A9D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8772D3CF-4C47-4A9F-9937-50124430A9D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8772D3CF-4C47-4A9F-9937-50124430A9D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8772D3CF-4C47-4A9F-9937-50124430A9D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {BA6CDB32-FE1E-4637-AF09-B7646FDBD005}
+		SolutionGuid = {39566806-0464-4D50-A0F2-0F97DAB61F4D}
 	EndGlobalSection
 EndGlobal
