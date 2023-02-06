@@ -5,6 +5,12 @@ using System.Diagnostics.CodeAnalysis;
 namespace CosmosDB_ChatGPT.Models
 {
 
+    public class SessionList
+    {
+        public string chatSessionId { get; set; }
+        public string chatSessionName { get; set; }
+    }
+
     public class ChatSession
     {
         [JsonProperty(PropertyName = "id")]

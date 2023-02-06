@@ -9,19 +9,16 @@ namespace CosmosDB_ChatGPT.Services
     public class ChatService
     {
 
-        public List<ChatSession> chatSessions; //Bind to lef-hand nav
+        private List<ChatSession> chatSessions= new List<ChatSession>();
 
         private readonly CosmosService cosmos;
         private readonly OpenAiService openAi;
 
-        public ChatService(IConfiguration configuration) 
-        { 
+        public ChatService(IConfiguration configuration)
+        {
 
             cosmos = new CosmosService(configuration);
             openAi = new OpenAiService(configuration);
-
-            //Load chat sessions for left-hand nav
-            chatSessions = GetAllChatSessionsAsync().Result;
 
         }
 
@@ -44,18 +41,27 @@ namespace CosmosDB_ChatGPT.Services
         // Returns list of chat session ids and names for left-hand nav to bind to (display ChatSessionName and ChatSessionId as hidden)
         public async Task<List<ChatSession>> GetAllChatSessionsAsync()
         {
-            return await cosmos.GetChatSessionsListAsync();
+            chatSessions = await cosmos.GetChatSessionsListAsync();
+            return chatSessions;
         }
 
         //Returns the chat messages to display on the main web page when the user selects a chat from the left-hand nav
         public async Task<List<ChatMessage>> GetChatSessionMessages(string chatSessionId)
         {
 
-            List<ChatMessage> chatMessages = await cosmos.GetChatSessionMessagesAsync(chatSessionId);
+            List<ChatMessage> chatMessages = new List<ChatMessage>();
 
             int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);
+            
+            if (chatSessions[index].Messages.Count == 0)
+            { 
+                //Messages are not cached, go read from database
+                chatMessages = await cosmos.GetChatSessionMessagesAsync(chatSessionId);
 
-            chatSessions[index].Messages = chatMessages;
+                //cache results
+                chatSessions[index].Messages = chatMessages;
+
+            }
 
             return chatMessages;
 
@@ -65,7 +71,9 @@ namespace CosmosDB_ChatGPT.Services
         public async Task CreateNewChatSession()
         {
             ChatSession chatSession = new ChatSession();
+
             chatSessions.Add(chatSession);
+            
             await cosmos.InsertChatSessionAsync(chatSession);
         }
 
