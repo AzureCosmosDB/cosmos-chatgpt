@@ -24,7 +24,7 @@ namespace CosmosDB_ChatGPT.Services
             string database = configuration["CosmosDatabase"];
             string container = configuration["CosmosContainer"];
 
-            cosmosClient = new CosmosClient(key, uri);
+            cosmosClient = new CosmosClient(uri, key);
 
             chatContainer = CreateContainerIfNotExistsAsync(database, container).Result;
         }
@@ -143,13 +143,14 @@ namespace CosmosDB_ChatGPT.Services
 
             ContainerProperties properties = new ContainerProperties();
 
+            properties.Id = containerId;
             properties.PartitionKeyDefinitionVersion = PartitionKeyDefinitionVersion.V2;
             properties.PartitionKeyPath = "/ChatSessionId";
 
             properties.IndexingPolicy.Automatic = true;
             properties.IndexingPolicy.IndexingMode = IndexingMode.Consistent;
             properties.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });
-            properties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/Response/?" });
+            //properties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/Response/?" });
             properties.IndexingPolicy.CompositeIndexes.Add(
                 new Collection<CompositePath> { 
                     new CompositePath() { 

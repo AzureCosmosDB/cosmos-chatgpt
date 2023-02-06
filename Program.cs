@@ -1,5 +1,4 @@
 using CosmosDB_ChatGPT.Services;
-using System;
 
 var builder = WebApplication.CreateBuilder(args);
 

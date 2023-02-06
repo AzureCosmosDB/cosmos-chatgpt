@@ -1,10 +1,53 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Azure Cosmos DB & ChatGPT";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+    <h1 class="display-4">Azure Cosmos DB & ChatGPT</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+<form>
+    <p>
+        <select asp-for="ChatSessionNames" asp-items="Model.ChatSessionList">
+            <option value=""></option>
+        </select>
+    </p>
+</form>
+
+<select id="selectChatSessionList" onclick="chatSessionListOnSelect(this, '@Url.Action("Index", "OnChatSessionSelect")')">
+    @foreach(var item in Model.ChatSessionList)
+    {
+        <option value="@item.ChatSessionId">@item.ChatSessionName</option>
+    }
+</select>
+
+<table class="table">
+    <tbody>
+        @foreach(var item in Model.ChatSessions)
+        {
+            <tr>
+                <td hidden="hidden">
+                    @Html.DisplayFor(modelItem => item.ChatSessionId)
+                </td>
+                <td action="Get">
+                    @Html.DisplayFor(modelItem => item.ChatSessionName)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+Prompt: <input type="text" asp-for="Prompt" /> <input type="submit" value="Ask" />
+
+<script>
+
+    function chatSessionListOnSelect(item,baseUrl){
+        window.location.href = baseUrl + '?chatSessionId=' + item.value;
+    }
+
+
+</script>
