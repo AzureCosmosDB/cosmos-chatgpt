@@ -1,4 +1,4 @@
-﻿@page "/showchat/{chatSessionId}"
+﻿@page "/showchat/{chatSessionId}/{chatSessionName}"
 
 @using CosmosDB_ChatGPT.Data
 @inject ChatService chatService
@@ -6,36 +6,54 @@
 
 <PageTitle>Chat Messages</PageTitle>
 
-<style type="text/css">
-    #prompt {
-        position: absolute;
-        bottom: 0;        
-        height: 100px;
-        margin-top: 100px;
-    }
-</style>
-<div class="">
-    <div class="">
 
-        @if (chatMessages == null)
-        {
+<div class="mh-100 vh-100 d-flex flex-column" >
+
+    <div class="pt-2 mb-2 bg-light text-dark"><h2>@chatSessionName</h2></div>
+
+    <div class="flex-grow-1" >
             <div>
-                <p><i>This chat  has no messages</i></p>
-            </div>
-        }
-        else
-        {  
-                @foreach (var msg in chatMessages)
+
+            @if (chatMessages == null)
+            {
+                <div>
+                    <p class="text-muted">Loading...</p>
+                </div>
+            }
+            else
+            {
+                if (chatMessages.Count == 0)
                 {
                     <div>
-                        <span> @msg.Sender (@msg.TimeStamp): </span> <span> @msg.Text</span>
+                        <p><i>This chat has no messages</i></p>
                     </div>
                 }
-        }
+                else
+                {
+                    @foreach (var msg in chatMessages)
+                    {
+                        if (msg.Sender == "OpenAI")
+                        {
+                            <p class="text-primary">
+                                <b> @msg.Sender </b> &nbsp;&nbsp;&nbsp;<span class="small">@msg.TimeStamp</span>
+                                <p>@msg.Text</p>
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="text-secondary">
+                                <b> @msg.Sender </b> &nbsp;&nbsp;&nbsp;<span class="small">@msg.TimeStamp</span>
+                                <p>@msg.Text</p>
+                            </p>
+                        }
+                    }
+                }
+            }
 
+            </div>
     </div>
-    <div id="aprompt">
-        <div style="padding:10px" class="border dark:border-gray-900/50 dark:text-white dark:bg-gray-700 rounded-md shadow-[0_0_10px_rgba(0,0,0,0.10)] dark:shadow-[0_0_15px_rgba(0,0,0,0.10)]">
+    <div style="height:75px">
+        <div style="padding:10px" class="border border-secondary rounded"  xclass="border dark:border-gray-900/50 dark:text-white dark:bg-gray-700 rounded-md shadow-[0_0_10px_rgba(0,0,0,0.10)] dark:shadow-[0_0_15px_rgba(0,0,0,0.10)]">
             <input @bind="@UserPrompt" @oninput="@((e) => { UserPrompt=(string)e.Value;})" tabindex="0" data-id="request-:r1:-2" rows="1" placeholder="Prompt comes here" class="m-0 w-full border-0 bg-transparent p-0 pl-2 pr-7" style="max-height:200px; height:24px; overflow-y: hidden;width:calc(100% - 25px);resize: none"></input>
             <a @onclick="submitPrompt">
                 <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
@@ -48,22 +66,38 @@
 
 </div>
 
+
 @code {
 
     List<ChatMessage> chatMessages;
 
     [Parameter]
     public string chatSessionId{ get; set; }
+    [Parameter]
+    public string chatSessionName { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+            chatMessages = await chatService.GetChatSessionMessages(chatSessionId);
+    }
+    //protected override void OnParametersSet()
+    //{
+        
+    //}
 
     protected override async Task OnInitializedAsync()
     {
-        chatMessages = await chatService.GetChatSessionMessages(chatSessionId);
+       
+        //base.OnInitializedAsync();
     }
 
+       
     private string UserPrompt { get; set; } 
 
     private void submitPrompt()
     {
         chatService.AskOpenAi(chatSessionId, UserPrompt);
     }
+
+   
 }

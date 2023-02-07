@@ -17,15 +17,20 @@ namespace CosmosDB_ChatGPT.Data
 
         public CosmosService(IConfiguration configuration)
         {
-            
+            Database database;
+
+
             string uri = configuration["CosmosUri"];
             string key = configuration["CosmosKey"];
-            string database = configuration["CosmosDatabase"];
+            string databasename = configuration["CosmosDatabase"];
             string container = configuration["CosmosContainer"];
 
             cosmosClient = new CosmosClient(uri, key);
 
-            chatContainer = CreateContainerIfNotExistsAsync(database, container).Result;
+            //chatContainer = CreateContainerIfNotExistsAsync(database, container).Result;
+
+            database = cosmosClient.GetDatabase(databasename);
+            chatContainer = database.GetContainer(container);
         }
 
         
@@ -115,7 +120,7 @@ namespace CosmosDB_ChatGPT.Data
             //Get the chat messages for a chat session
             QueryDefinition query = new QueryDefinition("SELECT * FROM c WHERE c.ChatSessionId = @ChatSessionId AND c.Type = @Type")
                 .WithParameter("@ChatSessionId", chatSessionId)
-                .WithParameter("@ChatSession", "ChatSession");
+                .WithParameter("@Type", "ChatMessage");
 
             FeedIterator<ChatMessage> results = chatContainer.GetItemQueryIterator<ChatMessage>(query);
 
