@@ -13,19 +13,20 @@ namespace CosmosDB_ChatGPT.Data
     {
         
         private readonly CosmosClient cosmosClient;
-        private readonly Container chatContainer;
+        private Container chatContainer;
+        private readonly string databaseId;
+        private readonly string containerId;
 
         public CosmosService(IConfiguration configuration)
         {
             
             string uri = configuration["CosmosUri"];
             string key = configuration["CosmosKey"];
-            string database = configuration["CosmosDatabase"];
-            string container = configuration["CosmosContainer"];
+            databaseId = configuration["CosmosDatabase"];
+            containerId = configuration["CosmosContainer"];
 
             cosmosClient = new CosmosClient(uri, key);
 
-            chatContainer = CreateContainerIfNotExistsAsync(database, container).Result;
         }
 
         
@@ -33,6 +34,10 @@ namespace CosmosDB_ChatGPT.Data
         // Only retrieve the chat sessions, not chat messages
         public async Task<List<ChatSession>> GetChatSessionsListAsync()
         {
+
+            if (chatContainer == null)
+                chatContainer = await CreateContainerIfNotExistsAsync(databaseId, containerId);
+
             List<ChatSession> chatSessions = new();
 
             try { 
@@ -134,11 +139,10 @@ namespace CosmosDB_ChatGPT.Data
 
         }
 
-
         public async Task<Container> CreateContainerIfNotExistsAsync(string databaseId, string containerId)
         {
 
-            Database database = await cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId);
+            Database database = await cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId); //= cosmosClient.GetDatabase(databaseId); //
 
             ContainerProperties properties = new ContainerProperties();
 
