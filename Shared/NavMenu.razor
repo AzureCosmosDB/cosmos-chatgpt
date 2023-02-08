@@ -41,10 +41,10 @@
                 {
                     <div class="btn @highlightActiveChat(session.ChatSessionId)">
 
-                            <div class="w-100 p-1" style="text-align:left">
+                        <div class="w-100 p-1" style="text-align:left ">
                             <a @onclick="@(e => LoadChat(session.ChatSessionId,session.ChatSessionName))">
                                     <span class="oi oi-document" aria-hidden="true"></span>
-                                    @session.ChatSessionName
+                                    <span title="@session.ChatSessionName"> @SafeSubstring(session.ChatSessionName,20) </span>
                                 </a>
                             </div>
                             <div style="text-align:right ;width:100%">
@@ -185,6 +185,10 @@
             return "btn-info";
     }
 
-
+    public string SafeSubstring(string text, int maxLength)
+    {
+        
+        return text.Length > maxLength ? text.Substring(0, maxLength)+"..." : text;
+    }
 
 }
