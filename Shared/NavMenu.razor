@@ -38,8 +38,8 @@
              <div class="vstack gap-3 px-3">
 
                 @foreach (var session in chatSessions)
-                {                         
-                        <div class="btn btn-primary">
+                {
+                    <div class="btn @highlightActiveChat(session.ChatSessionId)">
 
                             <div class="w-100 p-1" style="text-align:left">
                             <a @onclick="@(e => LoadChat(session.ChatSessionId,session.ChatSessionName))">
@@ -177,6 +177,13 @@
         return 0;
     }
 
+    private string highlightActiveChat(string sessionId)
+    {
+        if (sessionId != idOpenSession)
+            return "btn-primary";
+        else
+            return "btn-info";
+    }
 
 
 
