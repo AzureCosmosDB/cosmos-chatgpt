@@ -43,13 +43,13 @@ namespace CosmosDB_ChatGPT.Data
         public async Task<List<ChatSession>> GetAllChatSessionsAsync()
         {
             chatSessions = await cosmos.GetChatSessionsListAsync();
+           
             return chatSessions;
         }
 
         //Returns the chat messages to display on the main web page when the user selects a chat from the left-hand nav
         public async Task<List<ChatMessage>> GetChatSessionMessages(string chatSessionId)
         {
-
             List<ChatMessage> chatMessages = new List<ChatMessage>();
 
             int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);
@@ -60,7 +60,7 @@ namespace CosmosDB_ChatGPT.Data
                 chatMessages = await cosmos.GetChatSessionMessagesAsync(chatSessionId);
 
                 //cache results
-                chatSessions[index].Messages = chatMessages;
+                 chatSessions[index].Messages = chatMessages;
 
             }
             else
@@ -80,6 +80,7 @@ namespace CosmosDB_ChatGPT.Data
             chatSessions.Add(chatSession);
             
             await cosmos.InsertChatSessionAsync(chatSession);
+                       
         }
 
         //User Inputs a chat from "New Chat" to user defined
