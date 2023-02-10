@@ -12,6 +12,8 @@ namespace CosmosDB_ChatGPT.Data
 
         public OpenAiService(IConfiguration configuration) 
         {
+            return;
+
             string uri = configuration["OpenAiUri"];
             string key = configuration["OpenAiKey"];
             string deployment = configuration["OpenAiDeployment"];

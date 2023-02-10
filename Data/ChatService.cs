@@ -6,13 +6,14 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace CosmosDB_ChatGPT.Data
 {
-    public class ChatService
+    public class ChatService 
     {
 
         private List<ChatSession> chatSessions= new List<ChatSession>();
 
         private readonly CosmosService cosmos;
         private readonly OpenAiService openAi;
+
 
         public ChatService(IConfiguration configuration)
         {
@@ -30,7 +31,7 @@ namespace CosmosDB_ChatGPT.Data
         1. Get list of Chat Sessions for left-hand nav (called when instance created).
         2. User clicks on Chat Session, go get messages for that chat session.
         3. User clicks + to create a new Chat Session.
-        4. User renames a chat session from "New Chat" to something else.
+        4. User Inputs a chat session from "New Chat" to something else.
         5. User deletes a chat session.
         6. User types a question (prompt) into web page and hits enter.
             6.1 Save prompt in chatSessions.Messages[] 
@@ -62,7 +63,11 @@ namespace CosmosDB_ChatGPT.Data
                 chatSessions[index].Messages = chatMessages;
 
             }
-
+            else
+            {
+                //load from cache
+                chatMessages = chatSessions[index].Messages;
+            }
             return chatMessages;
 
         }
@@ -77,8 +82,8 @@ namespace CosmosDB_ChatGPT.Data
             await cosmos.InsertChatSessionAsync(chatSession);
         }
 
-        //User renames a chat from "New Chat" to user defined
-        public async Task RenameChatSessionAsync(string chatSessionId, string newChatSessionName)
+        //User Inputs a chat from "New Chat" to user defined
+        public async Task InputChatSessionAsync(string chatSessionId, string newChatSessionName)
         {
             
             int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);
