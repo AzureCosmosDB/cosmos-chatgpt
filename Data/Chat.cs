@@ -19,28 +19,22 @@ namespace CosmosDB_ChatGPT.Data
 
         public List<ChatMessage> Messages { get; set; }
 
-		public int Index { get; set; }
-
-		public DateTime LastUpdated { get; set; }
-
 		public ChatSession()
         {
             this.Id= Guid.NewGuid().ToString();
             this.Type = "ChatSession";
             this.ChatSessionId = this.Id;
             this.ChatSessionName = "New Chat";
-			this.LastUpdated = DateTime.Now;
 			this.Messages = new List<ChatMessage>();
         }
 
-        public ChatSession(string chatSessionId, string chatSessionName,DateTime lastUpdated, int index) {
+        public ChatSession(string chatSessionId, string chatSessionName)
+        {
 
             this.Id = chatSessionId;
             this.Type = "ChatSession";
             this.ChatSessionId = chatSessionId;
             this.ChatSessionName = chatSessionName;
-            this.LastUpdated = lastUpdated;
-            this.Index = index;
             this.Messages = new List<ChatMessage>();
         }
 

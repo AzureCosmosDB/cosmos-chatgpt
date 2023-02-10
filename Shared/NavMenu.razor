@@ -17,14 +17,14 @@
 @if (chatSessions != null)
 {
  
-    <div class="h-100 d-flex flex-column overflow-hidden">
+    <div class="h-100 d-flex flex-column">
 
         <div class="flex-column top-row navbar navbar-dark">
 		    <div class="container-fluid">
 			    <a class="navbar-brand" href="">cosmos-chatgpt</a>				
 		    </div>
 	    </div>
-        <div class="sidebar flex-grow-1 flex-column justify-content-center">
+        <div class="sidebar flex-grow-1 flex-column justify-content-center overflow-auto">
 
             <div>
                 <nav class="flex-column">
@@ -35,7 +35,7 @@
                     </div>
                 </nav>
              </div>
-             <div class="vstack gap-3 px-3">
+            <div class="vstack gap-3 px-3">
 
                 @foreach (var session in chatSessions)
                 {
@@ -65,7 +65,8 @@
                         </div>
 
                      }
-                @LoadChat(idOpenSession,nameOpenSession);
+
+                   @LoadChat(idOpenSession,nameOpenSession);
             </div>
         </div>
     </div>
@@ -133,7 +134,7 @@
     {
         if (newName!="")
         {
-            await chatService.InputChatSessionAsync(idSession,newName);
+            await chatService.RenameChatSessionAsync(idSession,newName);
 
         }
         InputIsOpen = false;
@@ -144,16 +145,6 @@
         await chatService.CreateNewChatSession();
     }
 
-
-
-    //private bool collapseNavMenu = true;
-
-    //private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    //private void ToggleNavMenu()
-    //{
-    //    collapseNavMenu = !collapseNavMenu;
-    //}
 
     List<ChatSession> chatSessions;
 

@@ -30,8 +30,8 @@ namespace CosmosDB_ChatGPT.Data
 
         public async Task<string> PostAsync(string Prompt)
         {
-
-            return FakeResponse();
+            return "1234-- This is indeed a Fake response";
+            //return FakeResponse();
 
             using StringContent jsonContent = new(
                 JsonSerializer.Serialize(new

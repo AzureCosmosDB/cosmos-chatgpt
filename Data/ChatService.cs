@@ -83,7 +83,7 @@ namespace CosmosDB_ChatGPT.Data
         }
 
         //User Inputs a chat from "New Chat" to user defined
-        public async Task InputChatSessionAsync(string chatSessionId, string newChatSessionName)
+        public async Task RenameChatSessionAsync(string chatSessionId, string newChatSessionName)
         {
             
             int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);

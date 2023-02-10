@@ -13,15 +13,12 @@ a, .btn-link {
     color: #0071c1;
 }
 
-.btn-primary {
+/*.btn-primary {
     color: #fff;
     background-color: #1b6ec2;
     border-color: #1861ac;
 }
-
-/*.content {
-    padding-top: 1.1rem;
-}*/
+*/
 
 input:focus {
     box-shadow: 0 0 0 0.2rem rgb(69, 175, 248, 0.15);
