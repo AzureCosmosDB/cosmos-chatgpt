@@ -17,8 +17,13 @@
     <div class="flex-column justify-content-center p-4 flex-grow-1 overflow-auto" id="chatmessagesdiv">
         @if (chatSessionId=="404")
         {
-            <div>
-                <p><i>There are no chat sessions</i></p>
+            <div class="alert alert-secondary mt-4">
+                <span class="oi oi-envelope-open me-2" aria-hidden="true"></span>
+                <strong>No Chats Available</strong>
+
+                <span class="text-nowrap">
+                    Use the New Chat option to start a new chat.
+                </span>
             </div>
         }
         else
@@ -101,6 +106,9 @@
 
     private async Task submitPrompt()
     {
+        if (chatSessionId == "404")
+            return;
+
         string tempPrompt = UserPrompt;
         if (UserPrompt!="")
         {           
@@ -118,7 +126,7 @@
     private string GetChatSessionName()
     {
         if (chatSessionId == "404")
-            return "No Chats Available";
+            return "";
         else
             return chatSessionName;
     }
