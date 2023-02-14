@@ -67,7 +67,7 @@
             			
 	</div>
 		<!--Prompt Input Row-->
-    <div class="flex-column justify-content-center px-4" style="min-height:75px">
+    <div class="@GetPromptVisibility() flex-column justify-content-center px-4" style="min-height:75px">
 		 <div style="padding:10px" class="border border-secondary rounded" >
             <input type="text" @bind="@UserPrompt" @oninput="@((e) => { UserPrompt=(string)e.Value;})" rows="1" placeholder="Prompt comes here" class="m-0 w-full border-0 bg-transparent p-0 pl-2 pr-7"
             style="height:24px; overflow-y: hidden; width:calc(100% - 25px);resize: none"></input>
@@ -106,7 +106,7 @@
 
     private async Task submitPrompt()
     {
-        if (chatSessionId == "404")
+        if (chatSessionId == "404" || UserPrompt == "" || UserPrompt==null)
             return;
 
         string tempPrompt = UserPrompt;
@@ -129,6 +129,14 @@
             return "";
         else
             return chatSessionName;
+    }
+
+    private string GetPromptVisibility()
+    {
+        if (chatSessionId == "404")
+            return "invisible";
+        else
+            return "";
     }
 
 }
