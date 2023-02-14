@@ -1,7 +1,9 @@
 ﻿@page "/showchat/{chatSessionId}/{chatSessionName}"
+@page "/nochatsavailable/{chatSessionId}"
 
 @using CosmosDB_ChatGPT.Data
 @inject ChatService chatService
+@inject IJSRuntime JSRuntime
 
 
 <PageTitle>Chat Messages</PageTitle>
@@ -9,11 +11,19 @@
 <div class="h-100 d-flex flex-column overflow-hidden">
 	<!--Header Row-->
     <div class="flex-column bg-light">
-        <div class="p-2" style="height:55px"><h2 class="text-dark">@chatSessionName</h2></div>
+        <div class="p-2" style="height:55px"><h2 class="text-dark">@GetChatSessionName()</h2></div>
 	 </div>
 	<!--Content Row-->
-    <div class="flex-column justify-content-center p-4 flex-grow-1 overflow-auto">
-		@if (chatMessages == null)
+    <div class="flex-column justify-content-center p-4 flex-grow-1 overflow-auto" id="chatmessagesdiv">
+        @if (chatSessionId=="404")
+        {
+            <div>
+                <p><i>There are no chat sessions</i></p>
+            </div>
+        }
+        else
+        {
+            if (chatMessages == null)
             {
                 <div>
                     <p class="text-muted">Loading...</p>
@@ -47,87 +57,24 @@
                         }
                     }
                 }
-            }	
-			
-			
+            }
+        }
+            			
 	</div>
 		<!--Prompt Input Row-->
-    <div class="flex-column justify-content-center px-4" style="height:75px">
+    <div class="flex-column justify-content-center px-4" style="min-height:75px">
 		 <div style="padding:10px" class="border border-secondary rounded" >
             <input type="text" @bind="@UserPrompt" @oninput="@((e) => { UserPrompt=(string)e.Value;})" rows="1" placeholder="Prompt comes here" class="m-0 w-full border-0 bg-transparent p-0 pl-2 pr-7"
             style="height:24px; overflow-y: hidden; width:calc(100% - 25px);resize: none"></input>
-            <a href="#" @onclick="submitPrompt">
+            <a style="cursor:pointer" @onclick="submitPrompt">
                 <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
                     <line x1="22" y1="2" x2="11" y2="13"></line>
                     <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                 </svg>
             </a>
         </div>	
-	</div>        
-				
+	</div>				
 </div>
-    
-
-<!--
-<div class="mh-100 vh-100 d-flex flex-column" >
-
-    <div class="pt-2 mb-2 bg-light text-dark"><h2>@chatSessionName</h2></div>
-
-    <div class="flex-grow-1 flex-shrink-1">
-            <div >
-
-            @if (chatMessages == null)
-            {
-                <div>
-                    <p class="text-muted">Loading...</p>
-                </div>
-            }
-            else
-            {
-                if (chatMessages.Count == 0)
-                {
-                    <div>
-                        <p><i>This chat has no messages</i></p>
-                    </div>
-                }
-                else
-                {
-                    @foreach (var msg in chatMessages)
-                    {
-                        if (msg.Sender == "OpenAI")
-                        {
-                            <p class="text-primary">
-                                <b> @msg.Sender </b> &nbsp;&nbsp;&nbsp;<span class="small">@msg.TimeStamp</span>
-                                <p>@msg.Text</p>
-                            </p>
-                        }
-                        else
-                        {
-                            <p class="text-secondary">
-                                <b> @msg.Sender </b> &nbsp;&nbsp;&nbsp;<span class="small">@msg.TimeStamp</span>
-                                <p>@msg.Text</p>
-                            </p>
-                        }
-                    }
-                }
-            }
-
-            </div>
-    </div>
-    <div style="height:75px">
-        <div style="padding:10px" class="border border-secondary rounded"  xclass="border dark:border-gray-900/50 dark:text-white dark:bg-gray-700 rounded-md shadow-[0_0_10px_rgba(0,0,0,0.10)] dark:shadow-[0_0_15px_rgba(0,0,0,0.10)]">
-            <input @bind="@UserPrompt" @oninput="@((e) => { UserPrompt=(string)e.Value;})" tabindex="0" data-id="request-:r1:-2" rows="1" placeholder="Prompt comes here" class="m-0 w-full border-0 bg-transparent p-0 pl-2 pr-7" style="max-height:200px; height:24px; overflow-y: hidden;width:calc(100% - 25px);resize: none"></input>
-            <a @onclick="submitPrompt">
-                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-            </a>
-        </div>
-    </div>
-    
-</div>
--->
 
 @code {
 
@@ -140,26 +87,40 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        if (chatSessionId!="404")
             chatMessages = await chatService.GetChatSessionMessages(chatSessionId);
     }
-    //protected override void OnParametersSet()
-    //{
-        
-    //}
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-       
-        //base.OnInitializedAsync();
+        scrollLastChatToView();
     }
 
-       
+
     private string UserPrompt { get; set; } 
 
-    private void submitPrompt()
+    private async Task submitPrompt()
     {
-        chatService.AskOpenAi(chatSessionId, UserPrompt);
+        string tempPrompt = UserPrompt;
+        if (UserPrompt!="")
+        {           
+            UserPrompt = "";
+
+        }
+        await chatService.AskOpenAi(chatSessionId, tempPrompt);
     }
 
-   
+    private async Task scrollLastChatToView()
+    {
+        await JSRuntime.InvokeAsync<bool>("scrollToLastMessage");
+    }
+
+    private string GetChatSessionName()
+    {
+        if (chatSessionId == "404")
+            return "No Chats Available";
+        else
+            return chatSessionName;
+    }
+
 }

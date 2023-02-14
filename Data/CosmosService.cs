@@ -6,6 +6,10 @@ using System.Collections.ObjectModel;
 using Newtonsoft.Json;
 using System.Linq.Expressions;
 using System;
+using System.ComponentModel;
+using Container = Microsoft.Azure.Cosmos.Container;
+using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace CosmosDB_ChatGPT.Data
 {
@@ -93,24 +97,35 @@ namespace CosmosDB_ChatGPT.Data
         public async Task DeleteChatSessionAsync(string chatSessionId)
         {
             //Retrieve the chat session and all the chat message items for a chat session
-            QueryDefinition query = new QueryDefinition("SELECT c.id, c.ChatSessionId FROM c WHERE c.id = @Type")
-                    .WithParameter("@Type", "ChatSession");
+            QueryDefinition query = new QueryDefinition("SELECT c.id, c.ChatSessionId FROM c WHERE c.ChatSessionId = @ID")
+                    .WithParameter("@ID", chatSessionId);
 
-            FeedIterator<dynamic> results = chatContainer.GetItemQueryIterator<dynamic>(query);
+
+            FeedIterator<ItemResponse> results = chatContainer.GetItemQueryIterator<ItemResponse>(query);
 
             while (results.HasMoreResults)
             {
-                FeedResponse<dynamic> response = await results.ReadNextAsync();
-                foreach (var item in response)
+                FeedResponse<ItemResponse> response = await results.ReadNextAsync();
+                foreach (ItemResponse responseItem in response)
                 {
-                    await chatContainer.DeleteItemAsync(id: item.id, partitionKey: new PartitionKey(item.ChatSessionId));
+                    await chatContainer.DeleteItemAsync<ItemResponse>(id: responseItem.Id, partitionKey: new PartitionKey(responseItem.ChatSessionId));
                 }
 
             }
 
+
         }
 
-        public async Task<ChatMessage> InsertChatMessageAsync(ChatMessage chatMessage)
+        private class ItemResponse
+        {
+            [JsonProperty(PropertyName = "id")]
+            public string Id { get; set; }
+
+            [JsonProperty(PropertyName = "ChatSessionId")]
+            public string ChatSessionId { get; set; }
+        }
+
+            public async Task<ChatMessage> InsertChatMessageAsync(ChatMessage chatMessage)
         {
 
             return await chatContainer.CreateItemAsync<ChatMessage>(chatMessage, new PartitionKey(chatMessage.ChatSessionId));
