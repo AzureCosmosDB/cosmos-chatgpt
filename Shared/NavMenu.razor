@@ -180,7 +180,8 @@
         {
             idOpenSession = sessionId;
             nameOpenSession = sessionName;
-            UriHelper.NavigateTo($"showchat/{sessionId}/{sessionName}");
+            if (sessionId!=null & sessionId != "" & sessionName != "")
+                    UriHelper.NavigateTo($"showchat/{sessionId}/{sessionName}");
         }
         else
         {
