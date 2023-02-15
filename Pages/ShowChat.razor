@@ -69,7 +69,7 @@
 		<!--Prompt Input Row-->
     <div class="@GetPromptVisibility() flex-column justify-content-center px-4" style="min-height:75px">
 		 <div style="padding:10px" class="border border-secondary rounded" >
-            <input type="text" @bind="@UserPrompt" @oninput="@((e) => { UserPrompt=(string)e.Value;})" rows="1" placeholder="Prompt comes here" class="m-0 w-full border-0 bg-transparent p-0 pl-2 pr-7"
+            <input type="text" @bind="@UserPrompt" @onkeydown="@Enter" @oninput="@((e) => { UserPrompt=(string)e.Value;})" rows="1" placeholder="Prompt comes here" class="m-0 w-full border-0 bg-transparent p-0 pl-2 pr-7"
             style="height:24px; overflow-y: hidden; width:calc(100% - 25px);resize: none"></input>
             <a style="cursor:pointer" @onclick="submitPrompt">
                 <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
@@ -100,7 +100,14 @@
     {
         scrollLastChatToView();
     }
-
+	
+	public async Task Enter(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            await submitPrompt();
+        }
+    }
 
     private string UserPrompt { get; set; } 
 
@@ -128,7 +135,7 @@
         if (chatSessionId == "404")
             return "";
         else
-            return chatSessionName;
+            return System.Net.WebUtility.HtmlEncode(chatSessionName);
     }
 
     private string GetPromptVisibility()
