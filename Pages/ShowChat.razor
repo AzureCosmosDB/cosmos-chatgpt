@@ -1,5 +1,7 @@
-﻿@page "/showchat/{chatSessionId}/{chatSessionName}"
-@page "/nochatsavailable/{chatSessionId}"
+﻿@page "/showchat/{ChatSessionId}/{ChatSessionName}"
+@page "/nochatsavailable/{ChatSessionId}"
+@page "/"
+
 
 @using CosmosDB_ChatGPT.Data
 @inject ChatService chatService
@@ -11,14 +13,14 @@
 <div class="h-100 d-flex flex-column overflow-hidden">
 	<!--Header Row-->
     <div class="flex-column bg-light">
-        <div class="p-2" style="height:55px"><h2 class="text-dark">@GetChatSessionName()</h2></div>
+        <h4 class="text-dark p-2" style="height:50px">@GetChatSessionName()</h4>
 	 </div>
 	<!--Content Row-->
-    <div class="flex-column justify-content-center p-4 flex-grow-1 overflow-auto" id="chatmessagesdiv">
-        @if (chatSessionId=="404")
+    <div class="flex-column justify-content-center p-4 flex-grow-1 overflow-auto" id="MessagesInChatdiv">
+        @if (ChatSessionId=="404")
         {
-            <div class="alert alert-secondary mt-4">
-                <span class="oi oi-envelope-open me-2" aria-hidden="true"></span>
+            <div class="alert alert-primary mt-4">
+                <span class="oi oi-lightbulb me-2" aria-hidden="true"></span>
                 <strong>No Chats Available</strong>
 
                 <span class="text-nowrap">
@@ -28,37 +30,44 @@
         }
         else
         {
-            if (chatMessages == null)
+             
             {
-                <div>
-                    <p class="text-muted">Loading...</p>
-                </div>
-            }
-            else
-            {
-                if (chatMessages.Count == 0)
+                if (MessagesInChat == null || LoadingComplete == false)
                 {
-                    <div>
-                        <p><i>This chat has no messages</i></p>
+                    <div class="alert alert-info mt-4">
+                        <span class="oi oi-data-transfer-download me-2" aria-hidden="true"></span>
+                        Please wait while your chat loads.
                     </div>
                 }
                 else
                 {
-                    @foreach (var msg in chatMessages)
+                    if (MessagesInChat.Count == 0)
                     {
-                        if (msg.Sender == "OpenAI")
+                        <div class="alert alert-info mt-4">
+                            <span class="oi oi-envelope-open me-2" aria-hidden="true"></span>
+                            <span class="text-nowrap">
+                                This chat has no messages.
+                            </span>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var msg in MessagesInChat)
                         {
-                            <p class="text-primary">
-                                <b> @msg.Sender </b> &nbsp;&nbsp;&nbsp;<span class="small">@msg.TimeStamp</span>
-                                <p>@msg.Text</p>
-                            </p>
-                        }
-                        else
-                        {
-                            <p class="text-secondary">
-                                <b> @msg.Sender </b> &nbsp;&nbsp;&nbsp;<span class="small">@msg.TimeStamp</span>
-                                <p>@msg.Text</p>
-                            </p>
+                            if (msg.Sender == "OpenAI")
+                            {
+                                <p class="text-primary">
+                                    <b> @msg.Sender </b> &nbsp;&nbsp;&nbsp;<span class="small">@msg.TimeStamp</span>
+                                    <p>@msg.Text</p>
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="text-secondary">
+                                    <b> @msg.Sender </b> &nbsp;&nbsp;&nbsp;<span class="small">@msg.TimeStamp</span>
+                                    <p>@msg.Text</p>
+                                </p>
+                            }
                         }
                     }
                 }
@@ -69,31 +78,34 @@
 		<!--Prompt Input Row-->
     <div class="@GetPromptVisibility() flex-column justify-content-center px-4" style="min-height:75px">
 		 <div style="padding:10px" class="border border-secondary rounded" >
-            <input type="text" @bind="@UserPrompt" @onkeydown="@Enter" @oninput="@((e) => { UserPrompt=(string)e.Value;})" rows="1" placeholder="Prompt comes here" class="m-0 w-full border-0 bg-transparent p-0 pl-2 pr-7"
-            style="height:24px; overflow-y: hidden; width:calc(100% - 25px);resize: none"></input>
+
+            <input type="text" @bind="@UserPromptSet" @onkeydown="@Enter" @oninput="@((e) => { UserPrompt=(string)e.Value;})" rows="1" placeholder="<Your Message>" class="m-0 w-full border-0 bg-transparent p-0 pl-2 pr-7"
+                   style="height:24px; overflow-y: hidden; width:calc(100% - 25px);resize: none"></input>
             <a style="cursor:pointer" @onclick="submitPrompt">
-                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-            </a>
+                <span class="oi oi-share" aria-hidden="true"></span>
+            </a>             
+            
         </div>	
 	</div>				
 </div>
 
 @code {
 
-    List<ChatMessage> chatMessages;
+    List<ChatMessage> MessagesInChat;
 
     [Parameter]
-    public string chatSessionId{ get; set; }
+    public string ChatSessionId{ get; set; }
     [Parameter]
-    public string chatSessionName { get; set; }
+    public string ChatSessionName { get; set; }
+
+    private bool LoadingComplete;
 
     protected override async Task OnParametersSetAsync()
     {
-        if (chatSessionId!="404")
-            chatMessages = await chatService.GetChatSessionMessages(chatSessionId);
+        if (ChatSessionId != "404" & ChatSessionId != null)
+            MessagesInChat = await chatService.GetChatSessionMessages(ChatSessionId);
+
+        LoadingComplete = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -109,20 +121,20 @@
         }
     }
 
-    private string UserPrompt { get; set; } 
-
+    private string UserPrompt { get; set; }
+    private string UserPromptSet { get; set; }
+    
     private async Task submitPrompt()
     {
-        if (chatSessionId == "404" || UserPrompt == "" || UserPrompt==null)
+        if (ChatSessionId == "404" || UserPrompt == "" || UserPrompt==null)
             return;
 
-        string tempPrompt = UserPrompt;
         if (UserPrompt!="")
         {           
-            UserPrompt = "";
+            UserPromptSet = "";
 
         }
-        await chatService.AskOpenAi(chatSessionId, tempPrompt);
+        await chatService.AskOpenAi(ChatSessionId, UserPrompt);
     }
 
     private async Task scrollLastChatToView()
@@ -132,15 +144,15 @@
 
     private string GetChatSessionName()
     {
-        if (chatSessionId == "404")
+        if (ChatSessionId == "404")
             return "";
         else
-            return System.Net.WebUtility.HtmlEncode(chatSessionName);
+            return System.Net.WebUtility.HtmlEncode(ChatSessionName);
     }
 
     private string GetPromptVisibility()
     {
-        if (chatSessionId == "404")
+        if (ChatSessionId == "404" || ChatSessionId == null || LoadingComplete == false)
             return "invisible";
         else
             return "";

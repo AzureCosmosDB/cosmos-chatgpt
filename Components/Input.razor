@@ -10,7 +10,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <input class="w-100" type="text" @bind="@Value" @oninput="@((e) => { Value=(string)e.Value;})" />
+                <input class="w-100" type="text" @onkeydown="@Enter" @bind="@Value" @oninput="@((e) => { ReturnValue=(string)e.Value;})" />
             </div>
             <div class="modal-footer">                
                 <button type="button" class="btn btn-primary"
@@ -31,13 +31,24 @@
     [Parameter] public string Value { get; set; }
     [Parameter] public EventCallback<string> OnClose { get; set; }
 
+    public string ReturnValue { get; set; }
+
     private Task Cancel()
     {
         return OnClose.InvokeAsync("");
     }
     private Task Ok()
     {
-        return OnClose.InvokeAsync(Value);
+        return OnClose.InvokeAsync(ReturnValue);
     }
 
+
+    public Task Enter(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            return OnClose.InvokeAsync(ReturnValue);
+        }
+        return null;
+    }
 }
