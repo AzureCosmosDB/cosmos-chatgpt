@@ -244,7 +244,7 @@
     {
       "type": "Microsoft.Web/sites/sourcecontrols",
       "apiVersion": "2020-12-01",
-      "name": "[format('{0}/source', variables('webSiteName'))]",
+      "name": "[format('{0}/web', variables('webSiteName'))]",
       "properties": {
         "repoUrl": "[variables('webSiteRepository')]",
         "branch": "main",
