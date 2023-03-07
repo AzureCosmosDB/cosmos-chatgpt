@@ -364,3 +364,4 @@ FodyWeavers.xsd
 /appsettings.json
 /appsettings.json
 /Properties/ServiceDependencies/Cosmos-ChatGPT-web - Web Deploy
+/appsettings.Development.json
