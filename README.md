@@ -21,6 +21,7 @@ The All connection information for Azure Cosmos DB and Open AI is zero-touch and
 1. Click + New Chat to create a new chat session. You can then rename it to have a meaningful name for that conversation.
 1. Type your question in the text box and press Enter.
 
-[![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2Fcosmos-chatgpt%2Fmain%2Fazuredeploy.json)
+[![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)]
+(https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzureCosmosDB%2Fcosmos-chatgpt%2Fmain%2Fazuredeploy.json)
 
 

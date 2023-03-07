@@ -147,7 +147,7 @@
         if (ChatSessionId == "404")
             return "";
         else
-            return System.Net.WebUtility.HtmlEncode(ChatSessionName);
+            return ChatSessionName;
     }
 
     private string GetPromptVisibility()
