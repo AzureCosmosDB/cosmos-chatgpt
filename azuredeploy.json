@@ -76,9 +76,10 @@
     "openAiAccountName": "[format('{0}-openai', parameters('chatAppName'))]",
     "hostingPlanName": "[format('{0}-hostingplan', parameters('chatAppName'))]",
     "webSiteName": "[format('{0}-webapp', parameters('chatAppName'))]",
-    "webSiteRepository": "https://github.com/AzureCosmosDB/cosmos-chat.git",
+    "webSiteRepository": "https://github.com/AzureCosmosDB/cosmos-chatgpt.git",
     "databaseName": "ChatDatabase",
-    "containerName": "ChatContainer"
+    "containerName": "ChatContainer",
+    "openAiMaxTokens": 3000
   },
   "resources": [
     {
@@ -221,13 +222,30 @@
             {
               "name": "CosmosContainer",
               "value": "[variables('containerName')]"
+            },
+            {
+              "name": "OpenAiUri",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiAccountName')), '2022-12-01').endpoint]"
+            },
+            {
+              "name": "OpenAiKey",
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiAccountName')), '2022-12-01').key1]"
+            },
+            {
+              "name": "OpenAiDeployment",
+              "value": "[parameters('openaiModelDeploymentName')]"
+            },
+            {
+              "name": "OpenAiMaxTokens",
+              "value": "[variables('openAiMaxTokens')]"
             }
           ]
         }
       },
       "dependsOn": [
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDBAccountName'))]",
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiAccountName'))]"
       ]
     },
     {
@@ -236,7 +254,7 @@
       "name": "[format('{0}/web', variables('webSiteName'))]",
       "properties": {
         "repoUrl": "[variables('webSiteRepository')]",
-        "branch": "main",
+        "branch": "master",
         "isManualIntegration": true
       },
       "dependsOn": [
