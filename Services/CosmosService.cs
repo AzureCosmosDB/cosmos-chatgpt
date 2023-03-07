@@ -11,7 +11,7 @@ using Container = Microsoft.Azure.Cosmos.Container;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
-namespace CosmosDB_ChatGPT.Data
+namespace CosmosDB_ChatGPT.Services
 {
     public class CosmosService
     {
@@ -23,8 +23,7 @@ namespace CosmosDB_ChatGPT.Data
 
         public CosmosService(IConfiguration configuration)
         {
-            Database database;
-
+            
 
             string uri = configuration["CosmosUri"];
             string key = configuration["CosmosKey"];

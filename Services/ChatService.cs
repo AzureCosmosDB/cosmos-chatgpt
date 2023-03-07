@@ -4,41 +4,29 @@ using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
 
-namespace CosmosDB_ChatGPT.Data
+namespace CosmosDB_ChatGPT.Services
 {
     public class ChatService 
     {
 
+        //All data is cached in chatSessions List object.
         private List<ChatSession> chatSessions= new List<ChatSession>();
 
         private readonly CosmosService cosmos;
         private readonly OpenAiService openAi;
+        private readonly int maxConversationLength;
 
 
         public ChatService(IConfiguration configuration)
         {
+            maxConversationLength = int.Parse(configuration["OpenAiMaxTokens"]) / 2;
 
             cosmos = new CosmosService(configuration);
             openAi = new OpenAiService(configuration);
-
+            
         }
 
-        /**
-        Data here maintained in chatSessions List object.
-        Any call made here is reflected in this object and is saved to Cosmos.
         
-        Calls Here
-        1. Get list of Chat Sessions for left-hand nav (called when instance created).
-        2. User clicks on Chat Session, go get messages for that chat session.
-        3. User clicks + to create a new Chat Session.
-        4. User Inputs a chat session from "New Chat" to something else.
-        5. User deletes a chat session.
-        6. User types a question (prompt) into web page and hits enter.
-            6.1 Save prompt in chatSessions.Messages[] 
-            6.2 Save response in chatSessions.Messages[]
-        **/
-
-
         // Returns list of chat session ids and names for left-hand nav to bind to (display ChatSessionName and ChatSessionId as hidden)
         public async Task<List<ChatSession>> GetAllChatSessionsAsync()
         {
@@ -72,7 +60,7 @@ namespace CosmosDB_ChatGPT.Data
 
         }
 
-        //User creates a new Chat Session in left-hand nav
+        //User creates a new Chat Session
         public async Task CreateNewChatSession()
         {
             ChatSession chatSession = new ChatSession();
@@ -95,7 +83,7 @@ namespace CosmosDB_ChatGPT.Data
 
         }
 
-        //User deletes a chat session from left-hand nav
+        //User deletes a chat session
         public async Task DeleteChatSessionAsync(string chatSessionId)
         {
             int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);
@@ -112,12 +100,39 @@ namespace CosmosDB_ChatGPT.Data
         {
             await AddPromptMessage(chatSessionId, prompt);
 
-            string response = await openAi.PostAsync(prompt);
+            string prompts = GetChatSessionConversation(chatSessionId);
+
+            string response = await openAi.AskAsync(chatSessionId, prompts);
 
             await AddResponseMessage(chatSessionId, response);
 
             return response;
 
+        }
+
+        private string GetChatSessionConversation(string chatSessionId)
+        {
+            string conversation = "";
+
+            int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);
+
+            if (chatSessions[index].Messages.Count > 0)
+            {
+                List<ChatMessage> chatMessages = chatSessions[index].Messages;
+
+                foreach(ChatMessage chatMessage in chatMessages)
+                {
+
+                    conversation += chatMessage.Sender + ": " + chatMessage.Text + "\n";
+                    
+                }
+
+                if (conversation.Length > maxConversationLength)
+                    conversation = conversation.Substring(conversation.Length - maxConversationLength, maxConversationLength);
+
+            }
+
+            return conversation;
         }
 
         // Add human prompt to the chat session message list object and insert into Cosmos.
@@ -133,10 +148,10 @@ namespace CosmosDB_ChatGPT.Data
 
         }
 
-        // Add OpenAI ressponse to the chat session message list object and insert into Cosmos.
+        // Add OpenAI response to the chat session message list object and insert into Cosmos.
         private async Task AddResponseMessage(string chatSessionId, string text)
         {
-            ChatMessage chatMessage = new ChatMessage(chatSessionId, "OpenAI", text);
+            ChatMessage chatMessage = new ChatMessage(chatSessionId, "AI", text);
 
             int index = chatSessions.FindIndex(s => s.ChatSessionId == chatSessionId);
 
