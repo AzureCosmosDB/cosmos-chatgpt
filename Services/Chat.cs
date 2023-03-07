@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 
-namespace CosmosDB_ChatGPT.Data
+namespace CosmosDB_ChatGPT.Services
 {
 
     public class ChatSession
@@ -59,6 +56,7 @@ namespace CosmosDB_ChatGPT.Data
         
         public string Text { get; set; }
 
+
         public ChatMessage(string ChatSessionId, string Sender, string Text)
         {
 
@@ -68,7 +66,6 @@ namespace CosmosDB_ChatGPT.Data
             this.Sender = Sender;
             this.TimeStamp = DateTime.UtcNow; //need to make ISO 8601
             this.Text = Text;
-
         }
     }
 }
