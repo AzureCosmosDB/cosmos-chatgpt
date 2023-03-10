@@ -1,6 +1,13 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.14.85.62628",
+      "templateHash": "13447736111506208810"
+    }
+  },
   "parameters": {
     "location": {
       "type": "string",
@@ -15,7 +22,11 @@
     "openAiRegion": {
       "type": "string",
       "defaultValue": "East US",
-      "allowedValues": [ "East US", "South Central US", "West Europe"],
+      "allowedValues": [
+        "East US",
+        "South Central US",
+        "West Europe"
+      ],
       "metadata": {
         "description": "OpenAI region"
       }
@@ -23,7 +34,9 @@
     "openAiSku": {
       "type": "string",
       "defaultValue": "S0",
-      "allowedValues": [ "S0" ],
+      "allowedValues": [
+        "S0"
+      ],
       "metadata": {
         "description": "OpenAI SKU"
       }
@@ -72,7 +85,7 @@
     "webSiteRepository": "https://github.com/AzureCosmosDB/cosmos-chatgpt.git",
     "databaseName": "ChatDatabase",
     "containerName": "ChatContainer",
-    "openAiMaxTokens": 3000
+    "openAiMaxTokens": "3000"
   },
   "resources": [
     {
@@ -158,7 +171,7 @@
         "name": "[parameters('openAiSku')]"
       },
       "kind": "OpenAI",
-      "properties":{
+      "properties": {
         "customSubDomainName": "[variables('openAiAccountName')]",
         "publicNetworkAccess": "Enabled"
       }
@@ -167,9 +180,6 @@
       "type": "Microsoft.CognitiveServices/accounts/deployments",
       "apiVersion": "2022-12-01",
       "name": "[format('{0}/{1}', variables('openAiAccountName'), parameters('openAIModelDeploymentName'))]",
-      "dependsOn": [
-        "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiAccountName'))]"
-      ],
       "properties": {
         "model": {
           "format": "OpenAI",
@@ -179,7 +189,10 @@
         "scaleSettings": {
           "scaleType": "Standard"
         }
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiAccountName'))]"
+      ]
     },
     {
       "type": "Microsoft.Web/serverfarms",
@@ -226,7 +239,7 @@
             },
             {
               "name": "OpenAiDeployment",
-              "value": "[parameters('openaiModelDeploymentName')]"
+              "value": "[parameters('openAIModelDeploymentName')]"
             },
             {
               "name": "OpenAiMaxTokens",
@@ -244,7 +257,7 @@
     {
       "type": "Microsoft.Web/sites/sourcecontrols",
       "apiVersion": "2020-12-01",
-      "name": "[format('{0}/web', variables('webSiteName'))]",
+      "name": "[format('{0}/{1}', variables('webSiteName'), 'web')]",
       "properties": {
         "repoUrl": "[variables('webSiteRepository')]",
         "branch": "main",

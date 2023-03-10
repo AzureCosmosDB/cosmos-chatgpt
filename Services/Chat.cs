@@ -25,16 +25,6 @@ namespace CosmosDB_ChatGPT.Services
 			this.Messages = new List<ChatMessage>();
         }
 
-        public ChatSession(string chatSessionId, string chatSessionName)
-        {
-
-            this.Id = chatSessionId;
-            this.Type = "ChatSession";
-            this.ChatSessionId = chatSessionId;
-            this.ChatSessionName = chatSessionName;
-            this.Messages = new List<ChatMessage>();
-        }
-
         public void AddMessage(ChatMessage message) {
         
             Messages.Add(message);
@@ -56,15 +46,13 @@ namespace CosmosDB_ChatGPT.Services
         
         public string Text { get; set; }
 
-
         public ChatMessage(string ChatSessionId, string Sender, string Text)
         {
-
             this.Id = Guid.NewGuid().ToString();
             this.Type = "ChatMessage";
             this.ChatSessionId = ChatSessionId; //partition key
             this.Sender = Sender;
-            this.TimeStamp = DateTime.UtcNow; //need to make ISO 8601
+            this.TimeStamp = DateTime.UtcNow;
             this.Text = Text;
         }
     }

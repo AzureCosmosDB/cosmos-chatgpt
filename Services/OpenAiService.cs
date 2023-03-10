@@ -35,7 +35,7 @@ namespace CosmosDB_ChatGPT.Services
             {
                 Prompt = { prompt },
                 User = chatSessionId,
-                MaxTokens = 1000
+                MaxTokens = maxTokens
                 
                 //Temperature = 1,
                 //Model = "text-davinci-003",
