@@ -100,9 +100,9 @@ namespace CosmosDB_ChatGPT.Services
         {
             await AddPromptMessage(chatSessionId, prompt);
 
-            string prompts = GetChatSessionConversation(chatSessionId);
+            string conversation = GetChatSessionConversation(chatSessionId);
 
-            string response = await openAi.AskAsync(chatSessionId, prompts);
+            string response = await openAi.AskAsync(chatSessionId, conversation);
 
             await AddResponseMessage(chatSessionId, response);
 
